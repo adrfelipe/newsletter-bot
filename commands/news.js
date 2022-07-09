@@ -1,30 +1,68 @@
 const { Command, CommandType } = require('gcommands');
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const axios = require('axios')
 const wait = require('node:timers/promises').setTimeout;
 
+const url = 'https://api-newsletter.herokuapp.com/news/filipedeschamps'
+
+const getButtons = (pageNumber, news) => {
+    return new MessageActionRow().addComponents(
+        new MessageButton()
+            .setLabel('Voltar')
+            .setCustomId('prev')
+            .setStyle('SUCCESS')
+            .setDisabled(pageNumber <= 0),
+        new MessageButton()
+            .setLabel('Avançar')
+            .setCustomId('next')
+            .setStyle('SUCCESS')
+            .setDisabled(!(pageNumber < news.length)),
+    );
+}
+
 new Command({
-	name: 'news',
-	description: 'Notícias da Newsletter do Filipe Deschamps',
-	// Propriedade do GCommands para aceitar slash e message commands
-	type: [CommandType.SLASH, CommandType.MESSAGE],
+    name: 'filipe',
+    description: 'Notícias da Newsletter do Filipe Deschamps',
+    // Propriedade do GCommands para aceitar slash e message commands
+    type: [CommandType.SLASH, CommandType.MESSAGE],
 
-	// The function thats executed when the user uses the command.
-	run: async (ctx) => {
-        let url = 'https://newsletter-deschamps.herokuapp.com/news'
-
-        const { data } = await axios.get(url)
-
-        const embed = new MessageEmbed()
-            .setColor('#0099ff')
-            .setTitle(`${data.data[2].titleText}`)
-            .setAuthor({ name: 'Newsletter do Filipe Deschamps!', iconURL: 'https://filipedeschamps.com.br/avatar-big.png', url: 'https://filipedeschamps.com.br/' })
-            .setDescription(`${data.data[2].mainText}`)
-            .setTimestamp()
-	        .setFooter({ text: 'Open Source Projects', iconURL: 'https://cdn.discordapp.com/icons/951257053194764309/ef582a24d7ae88de45d9a567ad93fadc.png?size=2048' });
+    // The function thats executed when the user uses the command.
+    run: async (ctx) => {
 
         await ctx.deferReply()
-        await wait(4000)
-		return ctx.editReply({embeds: [embed]});
-	}
-});
+
+        const { data } = await axios.get(url)
+        const news = data.data
+
+        let pageNumber = 0
+
+        const embeds = news.map((data, index) => new MessageEmbed()
+            .setColor('#0099ff')
+            .setAuthor({ name: 'Newsletter do Filipe Deschamps!', iconURL: 'https://filipedeschamps.com.br/avatar-big.png', url: `${data.source}` })
+            .setTitle(`${data.title}`)
+            .setDescription(`${data.content}`)
+            .setFooter({ text: `Página ${index + 1} de ${news.length}` })
+        )
+
+        await wait(4100)
+        await ctx.editReply({ embeds: [embeds[0]], components: [getButtons(pageNumber, news)] });
+        const message = await ctx.fetchReply()
+
+        const collectorButtons = message.createMessageComponentCollector({ filter: (interaction) => interaction.isButton() && ["next", "prev"].includes(interaction.customId) })
+
+        collectorButtons.on("collect", async (interaction) => {
+            await interaction.deferUpdate()
+            switch (interaction.customId) {
+                case "next":
+                    pageNumber = pageNumber + 1 < embeds.length ? ++pageNumber : 0;
+                    break;
+                case "prev":
+                    pageNumber = pageNumber > 0 ? --pageNumber : embeds.length - 1;
+                    break;
+            }
+
+            await ctx.editReply({ embeds: [embeds[pageNumber]], components: [getButtons(pageNumber, news)] })
+
+        })
+    }
+})
