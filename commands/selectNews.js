@@ -21,6 +21,8 @@ new Command({
                 new MessageSelectMenu()
                     .setCustomId('select')
                     .setPlaceholder('Selecione a newsletter desejada')
+                    .setMinValues(1)
+                    .setMaxValues(1)
                     .addOptions([
                         {
                             label: 'Newsletter do Filipe Deschamps',

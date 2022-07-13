@@ -26,7 +26,7 @@ const client = new GClient({
 	// ID do Servidor
 	devGuildId: process.env.GUILD_ID,
 	// Set the intents you will be using (https://discordjs.guide/popular-topics/intents.html#gateway-intents)
-	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS],
 });
 
 // Login to the discord API
