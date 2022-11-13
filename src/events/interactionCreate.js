@@ -14,7 +14,7 @@ module.exports = async (client, interaction) => {
     await command.execute(client, interaction);
   } catch (error) {
     console.error(error);
-    return interaction.reply({
+    return interaction.editReply({
       content:
         `❌ | [Slash Commands] Ocorreu um erro ao executar o comando ${interaction.commandName}.`,
       ephemeral: true,
