@@ -2,9 +2,9 @@ const { SlashCommandBuilder } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("server")
+    .setName("ping")
     .setDescription("Exibe o ping do bot!"),
-  async execute(interaction, client) {
+  async execute(client, interaction) {
     const message = await interaction.deferReply({
       fetchReply: true,
     });
